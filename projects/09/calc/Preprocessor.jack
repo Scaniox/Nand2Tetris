@@ -1,0 +1,154 @@
+class Preprocessor{
+
+    static Text_input calc;
+
+    function String preprocess(String equation){
+        var String output_equation;
+        var int current_index;
+        var char current_char;
+        var String input_buffer;
+        var int cursor;
+        var int key;
+        var int insert_counter; // used to insert input buffer into return equation
+        var int char_finder_counter; // used to iterate over equation to find other instances of the same letter
+        var bool exit;
+        var int error;
+        var int bracket_count;
+
+        // copy equation into output_equation
+        let output_equation = String.new(equation.length()+10);
+        let current_index = 0;
+        while(current_index < equation.length()){
+            do output_equation.appendChar(equation.charAt(current_index));
+            let current_index = current_index + 1;
+        }
+
+        // wait for enter to be released so that keyboard inputs work
+        while(~(key = 0)){
+            let key = Keyboard.keyPressed();
+        }
+
+        // letter replace loop
+        let current_index = 0;
+        while(current_index<output_equation.length()){                 // iterate through equation, copying character to return equation and replacing letters with input
+            let current_char = output_equation.charAt(current_index);
+
+            if((64<current_char)&(current_char<91)){                // letter : replace with user input
+                // set up a text input
+                let key = 32;
+                let exit = false;
+                let input_buffer = String.new(30);
+                let cursor = 0;
+
+                // text input loop
+                while(~(exit)){
+                    while(key = 0){ // wait untill key press
+                        let key = Keyboard.keyPressed();
+                    }
+
+                    if(key > 127){ // control keys
+                        if((key = 129) & (cursor > 0)){let input_buffer = Functions.removeChars(input_buffer, (cursor-1), 1); let cursor = cursor-1; }          // backspace
+                        if((key = 130) & (cursor > 0)){let cursor = cursor-1;}                                  // move cursor left
+                        if((key = 132) & (cursor < input_buffer.length())){let cursor = cursor+1;}              // move cursor right
+                    }
+
+                    if(((47<key)&(key<58)) | Functions.is_operator(key)){                                                      //number keys
+                        let input_buffer = Functions.insertChar(input_buffer, key, cursor);
+                        let cursor = cursor+1;
+                    }
+
+                    if((key = 128)&(input_buffer.length() > 0)){                        // enter: remove letter and insert input in brackets
+                        // syntax check
+                        let error = Syntax_checker.syntax_check(input_buffer);
+                        if (~(error = 1000)){ // syntax error detected
+                            while( ~((key = 130)|(key = 132)|(key = 140)) ){
+                                let key = Keyboard.keyPressed();
+                            }
+                            do Screen.clearScreen();
+                            do Output.moveCursor(0,0);
+                            do Output.printString(equation);
+                            if(key = 140){ // clear input buffer
+                                do input_buffer.dispose();
+                                let input_buffer = String.new(30);
+                                let cursor = 0;
+                            }
+                            else{
+                                let cursor = error;
+                            }
+                        }
+                        else{ // no syntax error
+                            let char_finder_counter = current_index;
+                            while (char_finder_counter<output_equation.length()){
+                                if(current_char = output_equation.charAt(char_finder_counter)){                 // insert the input if it is the same character
+
+                                    let output_equation = Functions.removeChars(output_equation, char_finder_counter, 1);
+                                    let output_equation = Functions.insertChar(output_equation, 40, char_finder_counter);
+                                    let output_equation = Functions.insertChar(output_equation, 41, (char_finder_counter+1));
+
+                                    let insert_counter = input_buffer.length()-1;
+                                    while(insert_counter>-1){
+                                        let output_equation = Functions.insertChar(output_equation, input_buffer.charAt(insert_counter), (char_finder_counter+1)); // input is inserted backwards
+                                        let insert_counter = insert_counter-1;
+                                    }
+
+                                }
+                                let char_finder_counter = char_finder_counter+1;
+                            }
+
+                            let exit = true;
+                        }
+                    }
+
+                    do Output.moveCursor(3,0);
+                    do Output.printChar(current_char);
+                    do Output.printString("=                ");
+                    do Output.moveCursor(3,2);
+                    do Output.printString(input_buffer);
+                    do Functions.print_cursor(3, cursor+2);
+
+                    while(~(key = 0)){
+                        let key = Keyboard.keyPressed();
+                    }
+                }
+                // end of text input loop
+                do input_buffer.dispose();
+            }
+
+            let current_index = current_index+1;
+        }
+
+
+        // loop to add * before ( if preceeding character in number or bracket
+        let current_index = 1; // starts at 1 because a bracket at 0 doesn't need messing with
+
+        if(output_equation.charAt(0) = 40){ // as first place is not checked in loop, it is checked here
+            let bracket_count = 1; // used to count brackets so implicit closing brackets can be added
+        }
+        else{
+            let bracket_count = 0;
+        }
+
+        while(current_index<output_equation.length()){
+            let current_char = output_equation.charAt(current_index-1);
+            if ( (output_equation.charAt(current_index) = 40) & (((47 < current_char) & (current_char < 58)) | (current_char = 41)) ){
+                let output_equation = Functions.insertChar(output_equation, 42, current_index);
+            }
+            if (output_equation.charAt(current_index) = 40){
+                let bracket_count = bracket_count+1;
+            }
+            if (output_equation.charAt(current_index) = 41){
+                let bracket_count = bracket_count-1;
+            }
+
+            let current_index = current_index+1;
+        }
+
+        // add implicit brackets
+        while(bracket_count>0){
+            do output_equation.appendChar(41);
+            let bracket_count = bracket_count-1;
+        }
+
+        return output_equation;
+    }
+}

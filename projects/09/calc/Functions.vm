@@ -1,0 +1,241 @@
+function Functions.insertChar 1
+push argument 0
+push constant 32
+call String.appendChar 2
+pop temp 0
+push argument 0
+call String.length 1
+push constant 1
+sub
+pop local 0
+label WHILE_EXP0
+push local 0
+push argument 2
+gt
+not
+if-goto WHILE_END0
+push argument 0
+push local 0
+push argument 0
+push local 0
+push constant 1
+sub
+call String.charAt 2
+call String.setCharAt 3
+pop temp 0
+push local 0
+push constant 1
+sub
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push argument 0
+push argument 2
+push argument 1
+call String.setCharAt 3
+pop temp 0
+push argument 0
+return
+function Functions.string_section 2
+push argument 2
+push argument 1
+sub
+call String.new 1
+pop local 0
+push argument 1
+pop local 1
+label WHILE_EXP0
+push local 1
+push argument 2
+lt
+not
+if-goto WHILE_END0
+push local 0
+push argument 0
+push local 1
+call String.charAt 2
+call String.appendChar 2
+pop temp 0
+push local 1
+push constant 1
+add
+pop local 1
+goto WHILE_EXP0
+label WHILE_END0
+push local 0
+return
+function Functions.insert_string 2
+push argument 0
+call String.length 1
+push argument 1
+call String.length 1
+add
+call String.new 1
+pop local 1
+push constant 0
+pop local 0
+label WHILE_EXP0
+push local 0
+push argument 2
+lt
+not
+if-goto WHILE_END0
+push local 1
+push argument 0
+push local 0
+call String.charAt 2
+call String.appendChar 2
+pop temp 0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+pop local 0
+label WHILE_EXP1
+push local 0
+push argument 1
+call String.length 1
+lt
+not
+if-goto WHILE_END1
+push local 1
+push argument 1
+push local 0
+call String.charAt 2
+call String.appendChar 2
+pop temp 0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP1
+label WHILE_END1
+push argument 2
+pop local 0
+label WHILE_EXP2
+push local 0
+push argument 0
+call String.length 1
+lt
+not
+if-goto WHILE_END2
+push local 1
+push argument 0
+push local 0
+call String.charAt 2
+call String.appendChar 2
+pop temp 0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP2
+label WHILE_END2
+push local 1
+return
+function Functions.removeChars 1
+push argument 1
+pop local 0
+label WHILE_EXP0
+push local 0
+push argument 0
+call String.length 1
+push argument 2
+sub
+lt
+not
+if-goto WHILE_END0
+push argument 0
+push local 0
+push argument 0
+push local 0
+push argument 2
+add
+call String.charAt 2
+call String.setCharAt 3
+pop temp 0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+pop local 0
+label WHILE_EXP1
+push local 0
+push argument 2
+lt
+not
+if-goto WHILE_END1
+push argument 0
+call String.eraseLastChar 1
+pop temp 0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP1
+label WHILE_END1
+push argument 0
+return
+function Functions.print_cursor 0
+push argument 1
+push constant 8
+call Math.multiply 2
+push argument 0
+push constant 11
+call Math.multiply 2
+push constant 1
+add
+push argument 1
+push constant 8
+call Math.multiply 2
+push constant 1
+add
+push argument 0
+push constant 11
+call Math.multiply 2
+push constant 9
+add
+call Screen.drawRectangle 4
+pop temp 0
+push constant 0
+return
+function Functions.is_al_num 0
+push constant 47
+push argument 0
+lt
+push argument 0
+push constant 58
+lt
+and
+push constant 64
+push argument 0
+lt
+push argument 0
+push constant 91
+lt
+and
+or
+return
+function Functions.is_operator 0
+push argument 0
+push constant 42
+eq
+push argument 0
+push constant 43
+eq
+or
+push argument 0
+push constant 45
+eq
+or
+push argument 0
+push constant 47
+eq
+or
+return

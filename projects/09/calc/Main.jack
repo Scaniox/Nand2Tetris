@@ -1,0 +1,10 @@
+class Main{
+
+    static Text_input calc;
+    function void main() {
+        let calc = Text_input.new();
+        do calc.run();
+        do calc.dispose();
+        return;
+    }
+}

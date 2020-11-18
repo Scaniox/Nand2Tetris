@@ -1,0 +1,9 @@
+push constant 1
+push constant 1
+eq
+if-goto start
+
+
+push constant 10
+label start
+push constant 256

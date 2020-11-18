@@ -1,0 +1,80 @@
+ class Syntax_checker{
+
+    function int syntax_check(String equation){
+        var bool good; // no faults found
+        var int brackets; // keeps track of bracket state
+        var char previous_char;
+        var char next_char;
+        var int current_index;
+        var char current_char;
+        var bool recent_number; // used to check that + - are used on a number
+
+        let good = true;
+        let brackets = 0;
+
+        do Output.moveCursor(4,0);
+        // loop through characters in equations
+        let current_index = 0;
+        let previous_char = 32;
+        let current_char = 32;
+        while ((current_index < (equation.length())) & good) {
+
+            // increment to next character
+            if(current_index > 0){
+                let previous_char = equation.charAt(current_index-1);
+            }
+            let current_char = equation.charAt(current_index);
+            if (current_index < (equation.length()-1)){
+                let next_char = equation.charAt(current_index+1);
+            }
+            else{
+                let next_char = 32;
+            }
+
+            if(current_char = 40){let brackets = brackets+1;} //open bracket
+            if(good & (current_char = 41)){ // close bracket
+                let brackets = brackets-1;
+                if(brackets<0){let good = false; do Syntax_checker.draw_syntax_error("lone closing bracket");}
+                if(previous_char = 40){let good = false; do Syntax_checker.draw_syntax_error("empty bracket"); }
+                if(Functions.is_al_num(next_char)){let good = false; do Syntax_checker.draw_syntax_error("closing bracket then value");}
+            }
+
+            if(good & ((current_char = 42)|(current_char = 47))){ // * /
+                if((current_index = 0)|(current_index = (equation.length()-1))){let good = false; do Syntax_checker.draw_syntax_error("* or / at start or end");} // at start or end of equation
+                else{
+                    if(~((Functions.is_al_num(previous_char) | (previous_char = 41)) & (Functions.is_al_num(next_char) | (next_char = 40)) )){let good = false; do Syntax_checker.draw_syntax_error("* or / without values");} // doesn't have values on either side
+                }
+            }
+
+            if(good & ((64 < current_char)&(current_char < 91))){// letters
+                if( (47 < next_char)&(next_char < 58)){let good = false; do Syntax_checker.draw_syntax_error("letter then number");} // can't have other values adjacent
+            }
+            if (good){ // only increment current_index if there are no errors
+                let current_index = current_index + 1;
+            }
+        }
+
+
+
+        if(good){ // no syntax errors
+            return 1000 ;
+        }
+        else{ // syntax error
+            return current_index;
+        }
+    }
+
+
+    function void draw_syntax_error(string error){
+        do Screen.clearScreen();
+        do Output.moveCursor(0,0);
+        do Output.printString("Syntax ERROR");
+        do Output.println();
+        do Output.printString(error);
+        do Output.println();
+        do Output.printString("[ESC]   : Cancel");
+        do Output.println();
+        do Output.printString("[<-][->]: Goto");
+        return;
+    }
+}

@@ -1,0 +1,13 @@
+/**
+* outputs 16 bit bus with 2's complement of 16 bit input bus
+*/
+
+CHIP Negator16 {
+    IN in[16];
+    OUT out[16];
+
+    PARTS:
+    Not16(in=in, out=notin);
+    Inc16(in=notin, out=out);
+
+}

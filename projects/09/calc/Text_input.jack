@@ -1,0 +1,105 @@
+class Text_input{
+
+    field String input_buffer;
+
+    constructor Text_input new(){
+        return this;
+    }
+
+    method void dispose(){
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void run(){
+        var bool exit;
+        var char key;
+        var int cursor;
+        var int error;
+        var String preprocessed_equation;
+        var String answer;
+
+        let cursor = 0;
+        let exit = false;
+        let input_buffer = String.new(30);
+
+        // update characters on screen
+        do Output.moveCursor(0, 0);
+        do Output.printString(input_buffer);
+        do Functions.print_cursor(0, cursor);
+
+        while(~exit){
+            while(key = 0){ // wait for key to be pressed
+                let key = Keyboard.keyPressed();
+            }
+
+            //process pressed key
+            if(key > 127){ // control keys
+                if(key = 140){let exit = true;} // esc -> exit
+                if((key = 129) & (cursor > 0)){let input_buffer = Functions.removeChars(input_buffer, (cursor-1), 1); let cursor = cursor-1; } // backspace
+                if((key = 130) & (cursor > 0)){let cursor = cursor-1;} // move cursor left
+                if((key = 132) & (cursor < input_buffer.length())){let cursor = cursor+1;} // move cursor right
+            }
+
+            if( (key = 40) | (key = 41) | Functions.is_al_num(key) | Functions.is_operator(key) ){ // character key
+                let input_buffer = Functions.insertChar(input_buffer, key, cursor);
+                let cursor = cursor + 1;
+            }
+
+            if( key = 128 & input_buffer.length() > 0){// enter
+                // syntax check
+                let error = Syntax_checker.syntax_check(input_buffer);
+                if (~(error = 1000)){ // syntax error detected
+                    while( ~((key = 130)|(key = 132)|(key = 140)) ){
+                        let key = Keyboard.keyPressed();
+                    }
+                    if(key = 140){ // clear input buffer
+                        do input_buffer.dispose();
+                        let input_buffer = String.new(30);
+                        let cursor = 0;
+                    }
+                    else{
+                        let cursor = error;
+                    }
+                }
+                else{
+                    // preprocess
+                    let preprocessed_equation = Preprocessor.preprocess(input_buffer);
+                    // calculate
+                    let answer = Interpreter.interpret(preprocessed_equation);
+
+                    // output results:
+                    do Output.moveCursor(0,0);
+                    do Output.printString(input_buffer);
+                    do Output.moveCursor(1, 0);
+                    do Output.printString(preprocessed_equation);
+                    do Output.moveCursor(3, 0);
+                    do Output.printString(answer);
+                    while(~((key = 130)|(key = 132))){
+                        let key = Keyboard.keyPressed();
+                    }
+
+                }
+            }
+
+            // update characters on screen
+            do Screen.clearScreen();
+            do draw_equation();
+            do Functions.print_cursor(0, cursor);
+
+            while(~(key = 0)){ // wait for key to be released
+                let key = Keyboard.keyPressed();
+            }
+        }
+        return;
+    }
+
+
+
+    method void draw_equation(){
+        do Output.moveCursor(0,0);
+        do Output.printString(input_buffer);
+        return;
+    }
+
+}

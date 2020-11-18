@@ -1,0 +1,99 @@
+class Functions{
+    function String insertChar(String s, char c, int index){
+        var int current_index;
+
+        // make string 1 longer
+        do s.appendChar(32);
+        let current_index = s.length()-1;
+        // move characters up
+        while(current_index>index){
+            do s.setCharAt(current_index, s.charAt(current_index-1));
+            let current_index = current_index - 1;
+        }
+        // set desired character
+        do s.setCharAt(index, c);
+
+        return s;
+    }
+
+
+    function String string_section(String input, int start, int end){ // returns a section of a string
+        var String return_string;
+        var int current_index;
+
+        let return_string = String.new(end-start);
+        let current_index = start;
+        while(current_index < end){
+            do return_string.appendChar(input.charAt(current_index));
+            let current_index = current_index+1;
+        }
+        return return_string;
+    }
+
+
+    function String insert_string(String outer, String inner, int index){ // insert inner string into outer string at index
+        var int current_index;
+        var String output_string;
+
+        let output_string = String.new(outer.length()+inner.length());
+
+        // first part of outer
+        let current_index = 0;
+        while(current_index < index){
+            do output_string.appendChar(outer.charAt(current_index));
+            let current_index = current_index + 1;
+        }
+
+        // inner
+        let current_index = 0;
+        while(current_index < inner.length()){
+            do output_string.appendChar(inner.charAt(current_index));
+            let current_index = current_index + 1;
+        }
+
+        // last part out outer
+        let current_index = index;
+        while(current_index < outer.length()){
+            do output_string.appendChar(outer.charAt(current_index));
+            let current_index = current_index + 1;
+        }
+
+        return output_string;
+    }
+
+
+    function String removeChars(String s, int index, int count){ // remove count many charactes after index
+        var int current_index;
+        let current_index = index;
+
+        // move characters down one space
+        while(current_index<(s.length()-count)){
+            do s.setCharAt((current_index), s.charAt(current_index+count));
+            let current_index = current_index + 1;
+        }
+
+        // remove extra characters
+        let current_index = 0;
+        while(current_index < count){
+            do s.eraseLastChar();
+            let current_index = current_index + 1;
+        }
+        return s;
+    }
+
+
+    function void print_cursor(int pos_y, int pos_x){
+        do Screen.drawRectangle((pos_x*8), ((pos_y*11)+1), (pos_x*8)+1, (pos_y*11)+9);
+        return;
+    }
+
+
+    function bool is_al_num(char c) {// returns if a character is alphanumeric
+        return  ( (47 < c) & (c < 58) ) | ( (64 < c) & (c < 91) ) ;
+    }
+
+
+    function bool is_operator(char c){// returns if a character is +-*/
+        return (c = 42) | (c = 43) | (c = 45) | (c = 47);
+    }
+}

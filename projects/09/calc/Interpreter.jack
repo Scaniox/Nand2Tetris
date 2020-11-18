@@ -1,0 +1,184 @@
+class Interpreter{
+    function int interpret(String equation){
+        var String output_equation;
+        var int current_index;
+        var char current_char;
+        var int bracket_count;  // count how many currently open brackets there are
+        var int first_bracket; // index of the first bracket
+
+        var int number1_start; // index of the most recent start of number character
+        var int operator_index; // index of the operator;
+        var String first_number; // value of first number;
+        var String second_number; // value of second number;
+        var String intermediate_result; // for storing the number result of a calculation;
+
+        var int sum_total; // used for summing up the addition blocks
+        var bool positive;
+
+        // copy equation into output_equation
+        let output_equation = String.new(equation.length()+10);
+        let current_index = 0;
+        while(current_index < equation.length()){
+            do output_equation.appendChar(equation.charAt(current_index));
+            let current_index = current_index + 1;
+        }
+
+
+        // interpret brackets
+        let current_index = 0;
+        let bracket_count = 0;
+        while(current_index < output_equation.length()){
+            let current_char = output_equation.charAt(current_index);
+            if(current_char = 40){
+                if (bracket_count = 0){
+                    let first_bracket = current_index; // first bracket found, search for second one
+                }
+                let bracket_count = bracket_count + 1;
+            }
+            if(current_char = 41){
+                let bracket_count = bracket_count - 1;
+                if(bracket_count = 0){// second bracket found
+                    // interpret separately
+                    let intermediate_result = Interpreter.interpret(Functions.string_section(output_equation, (first_bracket+1), current_index));
+                    //do Output.printString("section interpreted");
+
+                    // remove bracketed section
+                    let output_equation = Functions.removeChars(output_equation, first_bracket, (1+current_index-first_bracket));
+                    //do Output.printString("section removed");
+                    // insert number
+                    let output_equation = Functions.insert_string(output_equation, intermediate_result, first_bracket);
+                    let current_index = first_bracket + intermediate_result.length();
+                }
+            }
+
+            let current_index = current_index+1;
+        }
+
+        // division
+        let current_index = 0;
+        let number1_start = 0;
+        while(current_index < output_equation.length()){
+            let current_char = output_equation.charAt(current_index);
+
+            if(current_char = 47){
+                let operator_index = current_index;
+
+                // iterate forwards to the end of the second number (index of the next operator)
+                let current_index = current_index + 1;
+                let current_char = output_equation.charAt(current_index);
+                while((current_index < output_equation.length()) & ~(Functions.is_operator(current_char))){
+                    let current_index = current_index + 1;
+                    if(current_index < output_equation.length()){
+                        let current_char = output_equation.charAt(current_index);
+                    }
+                }
+
+                // calculate value
+                let first_number = Functions.string_section(output_equation, number1_start, operator_index);
+                let second_number = Functions.string_section(output_equation, (operator_index+1), current_index);
+
+                let intermediate_result = String.new(5);
+                do intermediate_result.setInt(first_number.intValue()/second_number.intValue());
+
+                // make space
+                let output_equation = Functions.removeChars(output_equation, number1_start, (current_index-number1_start));
+                // insert value into output_equation
+                let output_equation = Functions.insert_string(output_equation, intermediate_result, number1_start);
+                let current_index = number1_start + intermediate_result.length() - 1;
+                do intermediate_result.dispose();
+            }
+            else{
+                if(Functions.is_operator(current_char)){ // if there is an operator then the next index will be the start of a number
+                    let number1_start = current_index+1;
+                }
+            }
+
+            let current_index = current_index + 1;
+        }
+        //do Output.printString("/done");
+
+
+        // multiplication
+        let current_index = 0;
+        let number1_start = 0;
+        while(current_index < output_equation.length()){
+            let current_char = output_equation.charAt(current_index);
+
+            if(current_char = 42){
+                let operator_index = current_index;
+
+                // iterate forwards to the end of the second number (index of the next operator)
+                let current_index = current_index + 1;
+                let current_char = output_equation.charAt(current_index);
+                while((current_index < output_equation.length()) & ~(Functions.is_operator(current_char))){
+                    let current_index = current_index + 1;
+                    if(current_index < output_equation.length()){
+                        let current_char = output_equation.charAt(current_index);
+                    }
+                }
+
+                // calculate value
+                let first_number = Functions.string_section(output_equation, number1_start, operator_index);
+                let second_number = Functions.string_section(output_equation, (operator_index+1), current_index);
+
+                let intermediate_result = String.new(5);
+                do intermediate_result.setInt(first_number.intValue()*second_number.intValue());
+                do first_number.dispose();
+                do second_number.dispose();
+
+                // make space
+                let output_equation = Functions.removeChars(output_equation, number1_start, (current_index-number1_start));
+                // insert value into output_equation
+                let output_equation = Functions.insert_string(output_equation, intermediate_result, number1_start);
+                let current_index = number1_start + intermediate_result.length() - 1;
+                do intermediate_result.dispose();
+            }
+            else{
+                if(Functions.is_operator(current_char)){ // if there is an operator then the next index will be the start of a number
+                    let number1_start = current_index+1;
+                }
+            }
+
+            let current_index = current_index + 1;
+        }
+
+        // sum up terms
+        let sum_total = 0;
+        let current_index = 0;
+        let number1_start = 0;
+        let positive = true;
+        while(current_index < output_equation.length()){
+            let current_char = output_equation.charAt(current_index);
+
+            if(current_char = 45){ // - sign inverts positivity
+                let positive = ~(positive);
+            }
+
+            if(Functions.is_al_num(current_char)){// number
+                let number1_start = current_index;
+                // move current index to just after the end of the numbers
+                while((current_index < output_equation.length()) & ~(Functions.is_operator(current_char))){
+                    let current_index = current_index + 1;
+                    if(current_index < output_equation.length()){
+                        let current_char = output_equation.charAt(current_index);
+                    }
+                }
+
+                let first_number = Functions.string_section(output_equation, number1_start, current_index); // extract the string of the number from equation
+                let current_index = current_index - 1; // reduce current index by 1 to not miss a place
+                if(positive){
+                    let sum_total = sum_total + first_number.intValue();
+                }
+                else{
+                    let sum_total = sum_total - first_number.intValue();
+                }
+                let positive = true;
+            }
+
+            let current_index = current_index + 1;
+        }
+
+        do output_equation.setInt(sum_total);
+        return output_equation;
+    }
+}
