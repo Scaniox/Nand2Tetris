@@ -1,7 +1,7 @@
 # makes use of tokenizer to output and compile jack grammar
 #modules
 
-import JackTokenizer
+import JackTokenizer, SymbolTable, VMWriter
 
 # statics
 type_convert_table = {  "IDENTIFIER"    : "identifier",
@@ -10,27 +10,28 @@ type_convert_table = {  "IDENTIFIER"    : "identifier",
                         "KEYWORD"       : "keywordConstant"}
 
 
-#globals
-output = None
-indent = 0 # keeps track of how to indent xml for readability
+#globals ! need fixing
+label_counter = 0 # used to track generated labels
+current_class = None
 
 
 def constructor(input_file, output_file): # opens files
-    global output
+    global label_counter
     tokenizer.constructor(input_file)
     tokenizer.advance()
-    output = output_file.open("w")
+    SymbolTable.constructor()
+    VMWriter.constructor(output_file)
 
 
 def advance_with_check():
     if tokenizer.hasMoreTokens():
         tokenizer.advance()
     else:
-        print(f"program randomly ends in {tokenizer.current_token_place}: ({tokenizer.identifier()})")
+        print(f"program randomly ends on {tokenizer.current_token_place}: ({tokenizer.identifier()})")
         exit()
 
 
-def _eat(string):
+def _eat(string): # ensures current token is what is expected and then advances
     if tokenizer.tokenType() == "IDENTIFIER":
         current_token_type = "identifier"
         current_token_value = tokenizer.identifier()
@@ -52,21 +53,19 @@ def _eat(string):
         current_token_value = tokenizer.stringVal()
 
     else:
-        print(f"impossible token type in {tokenizer.current_token_place}: {tokenizer.tokenType()}")
+        print(f"impossible token type on {tokenizer.current_token_place}: {tokenizer.tokenType()}")
         exit()
 
     if current_token_value == string: # it is on the expected token
-        # write to file
-        _output_xml_term(current_token_type, current_token_value)
         # increment tokenizer forward
         advance_with_check()
 
     else: # unexpected token
-        print(f"unexpected token in {tokenizer.current_token_place}: {current_token_value} instead of: {string}")
+        print(f"unexpected token on {tokenizer.current_token_place}: {current_token_value} instead of: {string}")
         exit()
 
 
-def _eat_type(error_message):
+def _eat_type(error_message): # eats a type token
     current_token_value = False
 
     if tokenizer.tokenType() == "KEYWORD":
@@ -78,27 +77,24 @@ def _eat_type(error_message):
 
     if current_token_value:
         _eat(current_token_value)
+        return current_token_value
 
     else:
         print(error_message.format(tokenizer.identifier(), tokenizer.current_token_place))
         exit()
 
 
-def _eat_identifier(error_message):
+def _eat_identifier(error_message): # eats an identifier token and returns it
     if tokenizer.tokenType() == "IDENTIFIER":
-        _output_xml_term("identifier", tokenizer.identifier())
+        current_token_value = tokenizer.identifier()
+        advance_with_check()
+        return current_token_value
     else:
         print(error_message.format(tokenizer.identifier()))
         exit()
-    advance_with_check()
 
 
-def _output_xml_term(type, value):
-    global indent
-    output.write(f"{' '*indent*2}<{type}> {value} </{type}>\n")
-
-
-def check_term():
+def check_term(): # check if the current token is a term in an expression
     if tokenizer.tokenType() in ["IDENTIFIER", "INT_CONST", "STRING_CONST"]:
         return True
     elif tokenizer.tokenType() == "KEYWORD" and tokenizer.keyWord().lower() in ["true", "false", "null", "this", "-", "~"]:
@@ -110,14 +106,14 @@ def check_term():
 
 
 def CompileClass(): # compiles a class
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<class>\n")
-    indent += 1
+    # reset symbols
+    SymbolTable.constructor()
     _eat("class")
 
     # className
-    _eat_identifier("class name in {1}: ({0}) not an identifier")
+    current_class = _eat_identifier("class name on {1}: ({0}) not an identifier")
     _eat("{")
 
     # var declaration
@@ -129,10 +125,8 @@ def CompileClass(): # compiles a class
         CompileSubroutineDec()
 
     # end } - tokenizer should have run out of tokens by this point
-    if tokenizer.tokenType() == "SYMBOL" and tokenizer.symbol() == "}":
-        _output_xml_term("symbol", "}")
-    else:
-        print(f"class has no closing bracket in {tokenizer.current_token_place}: ({tokenizer.identifier()})")
+    if not(tokenizer.tokenType() == "SYMBOL" and tokenizer.symbol() == "}"):
+        print(f"class has no closing bracket on {tokenizer.current_token_place}: ({tokenizer.identifier()})")
         exit()
 
     if tokenizer.hasMoreTokens():
@@ -140,52 +134,52 @@ def CompileClass(): # compiles a class
         exit()
 
     # close
-    indent -= 1
-    output.write(f"{' '*indent*2}</class>\n")
 
 
 def CompileClassVarDec(): # compiles a static or field declaration
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<classVarDec>\n")
-    indent += 1
 
     # static or field
-    if tokenizer.keyWord() == "STATIC":
+    kind = tokenizer.keyWord()
+    if kind == "STATIC":
         _eat("static")
-    elif tokenizer.keyWord() == "FIELD":
+    elif kind == "FIELD":
         _eat("field")
 
     # type
-    _eat_type("static/ field in {1}: ({0}) not a type")
+    type = _eat_type("static/ field on {1}: ({0}) not a type")
 
     #var name
-    _eat_identifier("variable name in {1}: ({0}) not an identifier")
+    name = _eat_identifier("variable name on {1}: ({0}) not an identifier")
+    #append to table
+    SymbolTable.define(name, type, kind)
 
     # more variables
     while tokenizer.symbol() == ",":
         _eat(",")
         #var name
-        _eat_identifier("variable name in {1}: ({0}) not an identifier")
+        name = _eat_identifier("variable name on {1}: ({0}) not an identifier")
+        # append to table
+        SymbolTable.define(name, type, kind)
 
     _eat(";")
 
     # close
-    indent -= 1
-    output.write(f"{' '*indent*2}</classVarDec>\n")
 
 
-def CompileSubroutineDec(): # compiles a method, subroutine or constructor
-    global indent
+def CompileSubroutineDec(): # compiles a method, function or constructor
+    global label_counter, current_class
     #open
-    output.write(f"{' '*indent*2}<subroutineDec>\n")
-    indent += 1
+    # new subroutine symbol scope
+    SymbolTable.startSubroutine()
 
     # subroutine type
-    if tokenizer.keyWord() in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
-        _eat(tokenizer.keyWord().lower())
+    subroutine_type = tokenizer.keyWord()
+    if subroutine_type in ["CONSTRUCTOR", "FUNCTION", "METHOD"]:
+        _eat(subroutine_type.lower())
     else:
-        print(f"function type in {tokenizer.current_token_place}: ({tokenizer.current_token_value}) not constructor, function or method")
+        print(f"function type on {tokenizer.current_token_place}: ({tokenizer.current_token_value}) isn't constructor, function or method")
         exit()
 
     # return type
@@ -196,56 +190,79 @@ def CompileSubroutineDec(): # compiles a method, subroutine or constructor
         _eat(tokenizer.identifier())
 
     else:
-        print(f"subroutine return in {tokenizer.current_token_place}: ({tokenizer.current_token_value}) not a type")
+        print(f"subroutine return on {tokenizer.current_token_place}: ({tokenizer.current_token_value}) not a type")
         exit()
 
     # function name
-    _eat_identifier("function name in {1}: ({0}) not an identifier")
+    name = _eat_identifier("function name on {1}: ({0}) not an identifier")
+
+
     _eat("(")
-    CompileParameterList()
+    parameter_count = CompileParameterList()
     _eat(")")
+
+    #constructor code:
+    if subroutine_type = "CONSTRUCTOR":
+        #VM function declaration
+        VMWriter.WriteFunction(f"{current_class}.{name}",) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        # call memory alloc for to find memory block base
+        field_count = SymbolTable.VarCount("field")
+        VMWriter.WritePush("constant", field_count)
+        VMWriter.WriteCall("Memory.alloc", 1)
+        # set this (pointer 0) to block base
+        VMWriter.WritePop("pointer", 0)
+
+    # method code:
+    if subroutine_type == "METHOD":
+        # set this(pointer 0) to first argument
+        VMWriter.WritePush("argument", 0)
+        VMWriter.WritePop("pointer", 0)
+
     CompileSubroutineBody()
 
     # close
-    indent -= 1
-    output.write(f"{' '*indent*2}</subroutineDec>\n")
 
 
 def CompileParameterList(): # compiles a (possibly empty)list of parameters
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<parameterList>\n")
-    indent += 1
+    parameter_count = 0 # keeps track of how many arguments this subroutine has
 
-    # first paramater declaration
+    # first parameter declaration
     if tokenizer.keyWord() in ["INT", "CHAR", "BOOLEAN"] or tokenizer.tokenType() == "IDENTIFIER":
+        parameter_count += 1
         # first parameter type
-        _eat_type("{0}{1}") # should never error as it is checked beforehand
+        type = _eat_type("{0}{1}") # should never error as it is checked beforehand
 
         # first parameter name
-        _eat_identifier("parameter name in {1}: ({0}) not an identifier")
+        name = _eat_identifier("parameter name on {1}: ({0}) not an identifier")
+
+        # add parameter to table
+        SymbolTable.define(name, "argument", type)
 
     # more parameters
     while tokenizer.symbol() == ",":
+        parameter_count += 1
         # ,
         _eat(",")
 
         # type
-        _eat_type("parameter type in {1}: ({0}) not a type")
+        type = _eat_type("parameter type on {1}: ({0}) not a type")
 
         # name
-        _eat_identifier("parameter name in {1}: ({0}) not an identifier")
+        name = _eat_identifier("parameter name on {1}: ({0}) not an identifier")
+
+        # add parameter to table
+        SymbolTable.define(name, "argument", type)
 
     # close
-    indent -= 1
-    output.write(f"{' '*indent*2}</parameterList>\n")
+    return parameter_count
 
 
 def CompileSubroutineBody(): # compiles the body of a subroutine
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<subroutineBody>\n")
-    indent += 1
     _eat("{")
 
     # variable declarations
@@ -258,44 +275,41 @@ def CompileSubroutineBody(): # compiles the body of a subroutine
     _eat("}")
 
     # close
-    indent -= 1
-    output.write(f"{' '*indent*2}</subroutineBody>\n")
 
 
 def CompileVarDec(): # compiles a var declaration
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<varDec>\n")
-    indent += 1
-
     # var
     _eat("var")
 
     # type
-    _eat_type("variable type in {1}: ({0}) not a type")
+    type = _eat_type("variable type on {1}: ({0}) not a type")
 
     # name
-    _eat_identifier("variable name in {1}: ({0}) not an identifier")
+    name = _eat_identifier("variable name on {1}: ({0}) not an identifier")
+
+    # add local to table
+    SymbolTable.define(name, "local", type)
 
     # more names
     while tokenizer.symbol() == ",":
         _eat(",")
         # name
-        _eat_identifier("variable name in {1}: ({0}) not an identifier")
+        name = _eat_identifier("variable name on {1}: ({0}) not an identifier")
+
+        # add parameter to table
+        SymbolTable.define(name, "argument", type)
 
     # ;
     _eat(";")
 
     #close
-    indent -= 1
-    output.write(f"{' '*indent*2}</varDec>\n")
 
 
 def CompileStatements(): # compiles a list of statements, not handling enclosing {}
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<statements>\n")
-    indent += 1
 
     #iterate through statements
     while True:
@@ -313,20 +327,15 @@ def CompileStatements(): # compiles a list of statements, not handling enclosing
         elif tokenizer.symbol() == "}":
             break
         else:
-            print(f"unknown keyword in {tokenizer.current_token_place}: ({tokenizer.current_token_value}) ")
+            print(f"unknown keyword on {tokenizer.current_token_place}: ({tokenizer.current_token_value}) ")
             exit()
 
-
     # close
-    indent -= 1
-    output.write(f"{' '*indent*2}</statements>\n")
 
 
 def CompileLet(): # compiles a let statement
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<letStatement>\n")
-    indent += 1
 
     _eat("let")
     # varName
@@ -343,15 +352,11 @@ def CompileLet(): # compiles a let statement
     _eat(";")
 
     # close
-    indent -= 1
-    output.write(f"{' '*indent*2}</letStatement>\n")
 
 
 def CompileIf(): # compiles an if statement
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<ifStatement>\n")
-    indent += 1
 
     _eat("if")
     _eat("(")
@@ -369,15 +374,11 @@ def CompileIf(): # compiles an if statement
         _eat("}")
 
     #close
-    indent -= 1
-    output.write(f"{' '*indent*2}</ifStatement>\n")
 
 
 def CompileWhile(): # compiles a while statement
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<whileStatement>\n")
-    indent += 1
 
     _eat("while")
     _eat("(")
@@ -388,19 +389,15 @@ def CompileWhile(): # compiles a while statement
     _eat("}")
 
     # close
-    indent -= 1
-    output.write(f"{' '*indent*2}</whileStatement>\n")
 
 
 def CompileDo(): # compiles a do statement
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<doStatement>\n")
-    indent += 1
 
     _eat("do")
 
-    _eat_identifier("subroutine call name in {1}: ({0}) not an identifier")
+    _eat_identifier("subroutine call name on {1}: ({0}) not an identifier")
     # normal function call
     if tokenizer.symbol() == "(":
         _eat("(")
@@ -410,27 +407,23 @@ def CompileDo(): # compiles a do statement
     # object function call
     elif tokenizer.symbol() == ".":
         _eat(".")
-        _eat_identifier("subroutine call name in {1}: ({0}) not an identifier")
+        _eat_identifier("subroutine call name on {1}: ({0}) not an identifier")
         _eat("(")
         CompileExpressionList()
         _eat(")")
 
     else:
-        print(f"function call in {tokenizer.current_token_place}: ({tokenizer.current_token_value}) isn't called")
+        print(f"function call on {tokenizer.current_token_place}: ({tokenizer.current_token_value}) isn't called")
         exit()
 
     _eat(";")
 
     # close
-    indent -= 1
-    output.write(f"{' '*indent*2}</doStatement>\n")
 
 
 def CompileReturn(): # compiles a return statement
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<returnStatement>\n")
-    indent += 1
 
     _eat("return")
     if check_term():
@@ -438,15 +431,10 @@ def CompileReturn(): # compiles a return statement
     _eat(";")
 
     # close
-    indent -= 1
-    output.write(f"{' '*indent*2}</returnStatement>\n")
-
 
 def CompileExpression(): # compiles an expression
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<expression>\n")
-    indent += 1
 
     CompileTerm()
     while tokenizer.symbol() in ["+", "-", "*", "/", "&amp;", "|", "&lt;", "&gt;", "="]:
@@ -455,15 +443,11 @@ def CompileExpression(): # compiles an expression
         CompileTerm()
 
     # close
-    indent -= 1
-    output.write(f"{' '*indent*2}</expression>\n")
 
 
 def CompileTerm(): # compiles a term - also determines which type of identifier it is
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<term>\n")
-    indent += 1
 
     # grammar becomes ll(2) so previous token is saved and it is advanced by one
     if tokenizer.tokenType() == "IDENTIFIER":
@@ -488,9 +472,6 @@ def CompileTerm(): # compiles a term - also determines which type of identifier 
 
     advance_with_check()
 
-    # output previous term
-    _output_xml_term(previous_token_type, previous_token)
-
     # varName[expression]
     if tokenizer.symbol() == "[":
         _eat("[")
@@ -500,7 +481,7 @@ def CompileTerm(): # compiles a term - also determines which type of identifier 
     # className.subroutineName(expressionList)
     elif tokenizer.symbol() == ".":
         _eat(".")
-        _eat_identifier("function name in {1}: ({0}) has to be an identifier")
+        _eat_identifier("function name on {1}: ({0}) has to be an identifier")
         _eat("(")
         CompileExpressionList()
         _eat(")")
@@ -522,19 +503,13 @@ def CompileTerm(): # compiles a term - also determines which type of identifier 
 
 
     elif not(previous_token_type in ["identifier", "stringConstant", "integerConstant"] or previous_token in ["true", "false", "null", "this"]):
-        print(f"term starts wth keyword or symbol in {tokenizer.current_token_place}: ({previous_token})")
+        print(f"term starts wth keyword or symbol on {tokenizer.current_token_place}: ({previous_token})")
         exit()
 
 
-    indent -= 1
-    output.write(f"{' '*indent*2}</term>\n")
-
-
 def CompileExpressionList(): # compiles a (possibly empty) comma separated list of expressions
-    global indent
+    global label_counter, current_class
     # open
-    output.write(f"{' '*indent*2}<expressionList>\n")
-    indent += 1
 
     if check_term():
         CompileExpression()
@@ -543,5 +518,3 @@ def CompileExpressionList(): # compiles a (possibly empty) comma separated list 
         CompileExpression()
 
     # close
-    indent -= 1
-    output.write(f"{' '*indent*2}</expressionList>\n")

@@ -22,7 +22,7 @@ current_token_type = ""
 current_token_value = ""
 current_token_place = ""
 
-def constructor(input_file): # takes in an input file and sets up the program
+def constructor(input_file): # takes in an input file and pre processes it into tokens
     global tokens, current_index
     # reset state
     tokens.clear()
@@ -80,6 +80,7 @@ def advance(): # moves onto the next token
 
     current_token_value = tokens[current_index]["value"]
     current_token_place = tokens[current_index]["place"]
+
     # classify current token
     if current_token_value in keywords:
         current_token_type = "KEYWORD"
