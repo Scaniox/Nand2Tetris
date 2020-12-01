@@ -10,9 +10,9 @@ type_convert_table = {  "IDENTIFIER"    : "identifier",
                         "KEYWORD"       : "keywordConstant"}
 
 
-#globals ! need fixing
+#globals
 label_counter = 0 # used to track generated labels
-current_class = None
+current_class = None # used to track class name for function declarations
 
 
 def constructor(input_file, output_file): # opens files
@@ -201,8 +201,11 @@ def CompileSubroutineDec(): # compiles a method, function or constructor
     parameter_count = CompileParameterList()
     _eat(")")
 
+    # save current line of output file
+    subr_declaration_line =
+
     #constructor code:
-    if subroutine_type = "CONSTRUCTOR":
+    if subroutine_type == "CONSTRUCTOR":
         #VM function declaration
         VMWriter.WriteFunction(f"{current_class}.{name}",) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
