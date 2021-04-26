@@ -1,0 +1,11 @@
+class Main{
+
+    function void main(){
+        var int r;
+
+        let r = 32767 / 1;
+
+        do math.break();
+        return;
+    }
+}

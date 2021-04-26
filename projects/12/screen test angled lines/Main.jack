@@ -1,0 +1,12 @@
+class Main{
+
+    function void main(){
+        var int i;
+
+        while(i < 200){
+            do Screen.drawLine(10, 10, 110, 10 + i);
+            let i = i + 1;
+        }
+        return;
+    }
+}

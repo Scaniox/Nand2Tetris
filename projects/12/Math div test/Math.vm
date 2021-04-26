@@ -1,3 +1,6 @@
+function Math.break 0
+push constant 0
+return
 function Math.init 2
 push constant 16
 call Array.new 1
@@ -205,6 +208,8 @@ label IF_TRUE1
 push constant 1
 return
 label IF_FALSE1
+call Math.break 0
+pop temp 0
 push constant 16
 call Array.new 1
 pop local 0
@@ -240,6 +245,8 @@ add
 pop argument 1
 goto WHILE_EXP0
 label WHILE_END0
+call Math.break 0
+pop temp 0
 push constant 0
 pop local 2
 label WHILE_EXP1

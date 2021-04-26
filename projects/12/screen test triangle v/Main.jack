@@ -1,0 +1,15 @@
+class Main{
+
+    function void main(){
+        var int i;
+
+        let i = 0;
+        do Screen.setColor(true);
+        while(i < 120){
+            do Screen.draw_v_line(i + 5 , 128 - i, 128 + i);
+            let i = i + 1;
+        }
+
+        return;
+    }
+}

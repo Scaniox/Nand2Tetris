@@ -62,98 +62,35 @@ class Screen {
 
     /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
     function void drawLine(int x1, int y1, int x2, int y2) {
-        var int x_inc, y_inc, dx, dy, error;
 
         if(x1 = x2){ // vertical line
-            if(y2 > y1){
-                do Screen.draw_v_line(x1, y1, y2);
-            }
-            else{
-                do Screen.draw_v_line(x1, y2, y1);
-            }
-            return;
+            do Screen.draw_v_line(x1, y1, y2);
         }
 
         if(y1 = y2){ // horizontal line
-            if(x2 > x1){
-                do Screen.draw_h_line(x1, y1, x2);
-            }
-            else{
-                do Screen.draw_h_line(x2, y1, x1);
-            }
-            return;
+            do Screen.draw_h_line(x1, y1, x2);
         }
-
-        // angled line
-        let x_inc = 1;
-        let y_inc = 1;
-        let dx = Math.abs(x1-x2);
-        let dy = Math.abs(y1-y2);
-        if(x1 > x2){
-            let x_inc = -1;
-        }
-        if(y1 > y2){
-            let y_inc = -1;
-        }
-
-        if(dx > dy){ // increment x
-            let error = dy + dy - dx;
-
-            while(~(x1 = x2)){
-                do Screen.drawPixel(x1, y1);
-                let x1 = x1 + x_inc;
-
-                if(error > 0){
-                    let error = error - (dx + dx);
-                    let y1 = y1 + y_inc;
-                }
-                let error = error + (dy + dy);
-            }
-        }
-        else{ // increment y
-            let error = dx + dx - dy;
-
-            while(~(y1 = y2)){
-                do Screen.drawPixel(x1, y1);
-                let y1 = y1 + y_inc;
-
-                if(error > 0){ // error has got big enough to overflow
-                    let error = error - (dy + dy);
-                    let x1 = x1 + x_inc;
-                }
-                let error = error + (dx + dx);
-            }
-        }
-        do Screen.drawPixel(x2, y2);
-
         return;
     }
 
     function void draw_v_line(int x, int y1, int y2){
-        var int address, mask;
-
-        let address = 16384 + (x / 16) + (y1 * 32);
-        let mask = Math.poweroftwo(x - ((x / 16) * 16));
-        if(color){
-            while(y1 < y2){
-                do Memory.poke(address, Memory.peek(address) | mask);
-                let y1 = y1 + 1;
-                let address = address + 32;
-            }
-        }
-        else{
-            while(y1 < y2){
-                do Memory.poke(address, Memory.peek(address) & ~mask);
-                let y1 = y1 + 1;
-                let address = address + 32;
-            }
+        while(y1 < y2){
+            do Screen.drawPixel(x, y1);
+            let y1 = y1 + 1;
         }
         return;
     }
 
+    function void draw_h_line_simple(int x1, int y, int x2){
+        while(x1 < x2){
+            do Screen.drawPixel(x1, y);
+            let x1 = x1 + 1;
+        }
+        return;
+    }
 
     function void draw_h_line(int x1, int y, int x2){
-        var int address, end_address, mask, bit_index ;
+        var int address, end_address, mask, bit_index, end_bit_index;
 
         let address = 16384 + (x1 / 16) + (y * 32) + 1;
         let end_address = 16384 + (x2 / 16) + (y * 32) + 1;

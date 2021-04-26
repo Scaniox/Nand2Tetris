@@ -1,0 +1,15 @@
+class Main{
+
+    function void main(){
+        var int i;
+
+        let i = 0;
+        do Screen.setColor(true);
+        while(i < 200){
+            do Screen.draw_h_line(256 - i , i + 5, 256 + i);
+            let i = i + 1;
+        }
+
+        return;
+    }
+}

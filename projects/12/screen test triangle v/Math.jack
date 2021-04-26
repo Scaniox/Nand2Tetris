@@ -80,46 +80,32 @@ class Math {
 
         let result_neg = ((x < 0) | (y < 0)) & ~((x < 0) & (y < 0)); // xor of x and y signs
         if (result_neg){
-            return -Math.fast_reduced_div(Math.abs(x), Math.abs(y));
+            return -Math.reduced_div(Math.abs(x), Math.abs(y));
         }
         else{
-            return Math.fast_reduced_div(Math.abs(x), Math.abs(y));
+            return Math.reduced_div(Math.abs(x), Math.abs(y));
         }
 
     }
 
-    function int fast_reduced_div(int x, int y){
-        var Array powersoftwoy;
-        var int pow, result, subtractor;
+    function int reduced_div(int x, int y){
+        var int q, qy;
 
         if(y > x){
             return 0;
         }
-        if(x = y){
-            return 1;
+
+        let q = Math.reduced_div(x, y + y);
+        let qy = Math.multiply(q, y);
+        if((x - qy - qy) < y){
+            return q + q;
+        }
+        else{
+            return q + q + 1;
         }
 
-        let powersoftwoy = Array.new(16);
-        let pow = -1;
-        while((pow < 16) & (y > -2)){ // generates powers of y up to where it overflows
-            let pow = pow + 1;
-            let powersoftwoy[pow] = y;
-            let y = y + y;
-        }
 
-        let result = 0;
-        while(~(pow < 0)){  // try to subtract each power of y
-            let subtractor = powersoftwoy[pow];
-            if(~(x < subtractor)){
-                let x = x - subtractor;
-                let result = result | poweroftwo[pow];
-            }
-            let pow = pow - 1;
-        }
-
-        return result;
     }
-
 
     /** Returns the integer part of the square root of x. */
     function int sqrt(int x) {

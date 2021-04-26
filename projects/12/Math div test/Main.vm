@@ -1,0 +1,9 @@
+function Main.main 1
+push constant 32767
+push constant 1
+call Math.divide 2
+pop local 0
+call math.break 0
+pop temp 0
+push constant 0
+return

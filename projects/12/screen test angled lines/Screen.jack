@@ -65,22 +65,12 @@ class Screen {
         var int x_inc, y_inc, dx, dy, error;
 
         if(x1 = x2){ // vertical line
-            if(y2 > y1){
-                do Screen.draw_v_line(x1, y1, y2);
-            }
-            else{
-                do Screen.draw_v_line(x1, y2, y1);
-            }
+            do Screen.draw_v_line(x1, y1, y2);
             return;
         }
 
         if(y1 = y2){ // horizontal line
-            if(x2 > x1){
-                do Screen.draw_h_line(x1, y1, x2);
-            }
-            else{
-                do Screen.draw_h_line(x2, y1, x1);
-            }
+            do Screen.draw_h_line(x1, y1, x2);
             return;
         }
 

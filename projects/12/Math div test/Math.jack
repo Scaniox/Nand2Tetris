@@ -11,6 +11,11 @@ class Math {
 
     static Array poweroftwo;
 
+
+    function void break(){
+        return;
+    }
+
     /** Initializes the library. */
     function void init() {
         var int current_pow, current_val;
@@ -99,6 +104,7 @@ class Math {
             return 1;
         }
 
+        do Math.break();
         let powersoftwoy = Array.new(16);
         let pow = -1;
         while((pow < 16) & (y > -2)){ // generates powers of y up to where it overflows
@@ -107,8 +113,9 @@ class Math {
             let y = y + y;
         }
 
+        do Math.break();
         let result = 0;
-        while(~(pow < 0)){  // try to subtract each power of y
+        while(~(pow < 0)){
             let subtractor = powersoftwoy[pow];
             if(~(x < subtractor)){
                 let x = x - subtractor;
@@ -118,6 +125,7 @@ class Math {
         }
 
         return result;
+
     }
 
 
