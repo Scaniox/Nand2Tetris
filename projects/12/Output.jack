@@ -18,7 +18,7 @@ class Output {
 
     // Character map for displaying characters
     static Array charMaps;
-    static Array powersof10;
+    static Array Math.powersof10;
     static int cursor_row;
     static int cursor_column;
 
@@ -29,15 +29,7 @@ class Output {
 
         do Output.initMap(); // initalise character map
 
-        // initialise powers of 10
-        let power = 0;
-        let value = 1;
-        let powersof10 = Array.new(5);
-        while(power < 5){
-            let powersof10[power] = value;
-            let value = value * 10;
-            let power = power + 1;
-        }
+
 
         return;
     }
@@ -267,29 +259,12 @@ class Output {
     /** Displays the given integer starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printInt(int i) {
-        var int digit, place_value;
-        var bool started;
+        var String str;
 
-        let started = false;
-        let place_value = 4;
-
-        if(i < 0){
-            let i = Math.abs(i);
-            do Output.printChar(45);
-        }
-
-        while(~(place_value < 0)){
-            let digit = i / powersof10[place_value];  // figure out a specific digit
-            let i = i - (powersof10[place_value] * digit);  // sub of digit * power of 10
-            if(~(digit = 0)){ // skips non significant zeros
-                let started = true;
-            }
-
-            if(started | (place_value = 0)){
-                do Output.printChar(digit + 48);
-            }
-            let place_value = place_value - 1;
-        }
+        let str = String.new(6);
+        do str.setInt(i);
+        do Output.printString(str);
+        do str.dispose();
 
         return;
     }
