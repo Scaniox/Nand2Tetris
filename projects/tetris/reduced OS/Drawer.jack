@@ -1,0 +1,110 @@
+class Drawer{
+
+    static int b_width, b_height;
+    static Array patterns;
+    static int pos_x;
+    static int pos_y;
+
+
+    function void new(int x, int y){
+        let patterns = Array.new(7);
+
+        let b_width = 10;
+        let b_height = 20;
+
+        let pos_x = x;
+        let pos_y = y;
+
+        return;
+    }
+
+    function void clear_board(){
+        do Screen.setColor(true);
+        do Drawer.hollow_rectangle(pos_x-1, pos_y, pos_x+4 + (b_width * 8), pos_y+3 + (b_height * 8));
+        //do Screen.setColor(false);
+        //do Screen.drawRectangle(pos_x, pos_y+1, pos_x+3 + (b_width * 8), pos_y+2 + (b_height * 8));
+
+        return;
+    }
+
+    function void draw(int x, int y, int pattern){
+        var int x8, y8;
+
+        let x8 = x * 8;
+        let y8 = y * 8;
+        if(~(0 > x) & (x < b_width) & ~(0 > y) & (y < b_height)){
+            do Screen.setColor(true);
+            do Drawer.hollow_rectangle(x8+pos_x+2, y8+pos_y+2, x8+pos_x+9, y8+pos_y+9);
+
+            if(pattern = 1){
+                do Drawer.hollow_rectangle(x8+pos_x+4, y8+pos_y+4, x8+pos_x+7, y8+pos_y+7);
+            }
+            if((pattern = 2) | (pattern = 4)){
+                do Drawer.offset_pixel(x8, y8, 3,3);
+                do Drawer.offset_pixel(x8, y8, 3,8);
+                do Drawer.offset_pixel(x8, y8, 8,3);
+                do Drawer.offset_pixel(x8, y8, 8,8);
+
+                do Drawer.offset_pixel(x8, y8, 4,4);
+                do Drawer.offset_pixel(x8, y8, 4,7);
+                do Drawer.offset_pixel(x8, y8, 7,4);
+                do Drawer.offset_pixel(x8, y8, 7,7);
+            }
+            if(pattern = 3){
+                do Drawer.offset_line(x8, y8, 3, 5, 8, 5);
+                do Drawer.offset_line(x8, y8, 3, 6, 8, 6);
+                do Drawer.offset_line(x8, y8, 5, 3, 5, 8);
+                do Drawer.offset_line(x8, y8, 6, 3, 6, 8);
+            }
+            if((pattern = 4) | (pattern = 6)){
+                do Drawer.offset_pixel(x8, y8, 3,5);
+                do Drawer.offset_pixel(x8, y8, 5,8);
+                do Drawer.offset_pixel(x8, y8, 8,6);
+                do Drawer.offset_pixel(x8, y8, 6,3);
+
+            }
+            if((pattern = 5) | (pattern = 4)){
+                do Drawer.offset_pixel(x8, y8, 5,5);
+                do Drawer.offset_pixel(x8, y8, 5,6);
+                do Drawer.offset_pixel(x8, y8, 6,5);
+                do Drawer.offset_pixel(x8, y8, 6,6);
+
+            }
+            if(pattern = 6){
+
+            }
+            if(pattern = 7){
+                do Drawer.offset_line(x8, y8, 4, 3, 8, 7);
+                do Drawer.offset_line(x8, y8, 3, 8, 8, 3);
+
+            }
+        }
+        return;
+    }
+
+    function void offset_line(int x, int y, int x1, int y1, int x2, int y2){
+        do Screen.drawLine(x+pos_x+x1, y+pos_y+y1, x+pos_x+x2, y+pos_y+y2);
+        return;
+    }
+
+    function void offset_pixel( int x, int y, int x1, int y1){
+        do Screen.drawPixel(x+pos_x+x1, y+pos_y+y1);
+        return;
+    }
+
+    function void hollow_rectangle(int x1, int y1, int x2, int y2){
+        do Screen.drawLine(x1, y1, x2, y1);
+        do Screen.drawLine(x2, y1, x2, y2);
+        do Screen.drawLine(x1, y2, x2, y2);
+        do Screen.drawLine(x1, y1, x1, y2);
+        return;
+    }
+
+    function void erase(int x, int y){
+        if(~(0 > x) & (x < b_width) & ~(0 > y) & (y < b_height)){
+            do Screen.setColor(false);
+            do Screen.drawRectangle((x*8)+pos_x+2, (y*8)+pos_y+2, (x*8)+pos_x+9, (y*8)+pos_y+9 );
+        }
+        return;
+    }
+}

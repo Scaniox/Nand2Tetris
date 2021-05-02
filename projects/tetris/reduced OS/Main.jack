@@ -1,0 +1,24 @@
+class Main{
+
+    static Game game;
+
+    function void main(){
+
+        do Drawer.new(200, 25);
+        do Drawer.clear_board();
+        do Output.moveCursor(0, 26);
+        do Output.printString("Tetris");
+        do Output.moveCursor(1, 25);
+        do Output.printString("Score: 0");
+
+
+
+        let game = Game.new();
+        do game.run();
+
+        do Output.moveCursor(8, 25);
+        do Output.printString("GAME OVER!");
+
+        return;
+    }
+}

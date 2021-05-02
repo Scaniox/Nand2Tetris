@@ -1,0 +1,162 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Math.jack
+
+/**
+ * A library of commonly used mathematical functions.
+ * Note: Jack compilers implement multiplication and division using OS method calls.
+ */
+class Math {
+
+    static Array powersoftwo;
+    static Array powersoftwoy;
+    static Array powersof10;
+
+    /** Initializes the library. */
+    function void init() {
+        var int power, value;
+
+        let powersoftwoy = Array.new(16); // pre initialised array for division
+
+        // initialise powers of 2
+        let power = 0;
+        let value = 1;
+        let powersoftwo = Array.new(16);
+        while(power < 16){
+            let powersoftwo[power] = value;
+            let value = value + value;
+            let power = power + 1;
+        }
+
+        // initialise powers of 10
+        let power = 0;
+        let value = 1;
+        let powersof10 = Array.new(5);
+        while(power < 5){
+            let powersof10[power] = value;
+            let value = value * 10;
+            let power = power + 1;
+        }
+
+
+
+        return;
+    }
+
+
+    // returns a power of 2 from the array
+    function int poweroftwo(int power){
+        return powersoftwo[power];
+    }
+
+    // returns a power of 10 from the array
+    function int powerof10(int power){
+        return powersof10[power];
+    }
+
+    /** Returns the absolute value of x. */
+    function int abs(int x) {
+        if(x > 0){
+            return x;
+        }
+        else{
+            return -x;
+        }
+    }
+
+    /** Returns the product of x and y.
+     *  When a Jack compiler detects the multiplication operator '*' in the
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x*y and multiply(x,y) return the same value.
+     */
+    function int multiply(int x, int y) {
+        var int product, loops, twotothei;
+
+        let product = 0;
+        let loops = 0;
+        let twotothei = 1;
+        while(loops < 16){
+            if(~((y & twotothei) = 0)){
+                let product = product + x;
+            }
+
+            let x = x + x;
+            let loops = loops + 1;
+            let twotothei = twotothei + twotothei;
+        }
+
+        return product;
+    }
+
+    /** Returns the integer part of x/y.
+     *  When a Jack compiler detects the multiplication operator '/' in the
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x/y and divide(x,y) return the same value.
+     */
+    function int divide(int x, int y) {
+        var bool result_neg;
+        if(y = 0){
+            do Sys.error("divide by zero error");
+        }
+
+        let result_neg = ((x < 0) | (y < 0)) & ~((x < 0) & (y < 0)); // xor of x and y signs
+        if (result_neg){
+            return -Math.fast_reduced_div(Math.abs(x), Math.abs(y));
+        }
+        else{
+            return Math.fast_reduced_div(Math.abs(x), Math.abs(y));
+        }
+
+    }
+
+    function int fast_reduced_div(int x, int y){
+        var int pow, result, subtractor;
+
+        if(y > x){
+            return 0;
+        }
+        if(x = y){
+            return 1;
+        }
+
+        let pow = -1;
+        while((pow < 16) & (y > -2)){ // generates powers of y up to where it overflows
+            let pow = pow + 1;
+            let powersoftwoy[pow] = y;
+            let y = y + y;
+        }
+
+        let result = 0;
+        while(~(pow < 0)){  // try to subtract each power of y
+            let subtractor = powersoftwoy[pow];
+            if(~(x < subtractor)){
+                let x = x - subtractor;
+                let result = result | powersoftwo[pow];
+            }
+            let pow = pow - 1;
+        }
+
+        return result;
+    }
+
+    /** Returns the greater number. */
+    function int max(int a, int b) {
+        if(a > b){
+            return a;
+        }
+        else{
+            return b;
+        }
+    }
+
+    /** Returns the smaller number. */
+    function int min(int a, int b) {
+        if(a > b){
+            return b;
+        }
+        else{
+            return a;
+        }
+    }
+}

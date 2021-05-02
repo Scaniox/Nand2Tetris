@@ -1,0 +1,93 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * This library provides two services: direct access to the computer's main
+ * memory (RAM), and allocation and recycling of memory blocks. The Hack RAM
+ * consists of 32,768 words, each holding a 16-bit binary number.
+ */
+class Memory {
+    static Array ram;
+    static Array heap;
+    static int freeList;
+
+    /** Initializes the class. */
+    function void init() {
+        let ram = 0;
+        let heap = 2048;
+        let freeList = 2048;
+        let heap[0] = 0;
+        let heap[1] = 14335;
+        return;
+    }
+
+    /** Returns the RAM value at the given address. */
+    function int peek(int address) {
+        return ram[address];
+    }
+
+    /** Sets the RAM value at the given address to the given value. */
+    function void poke(int address, int value) {
+        let ram[address] = value;
+        return;
+    }
+
+    /** Finds an available RAM block of the given size and returns
+     *  a reference to its base address. */
+    function int alloc(int size) {
+        var int current_block, block_size;
+        var int best_block, best_block_size;
+
+        let current_block = freeList;
+
+        // find best block
+        let best_block = 0;
+        let best_block_size = 15000;
+        while(~(current_block = 0)){
+            let block_size = current_block[1];
+
+            // see if current block is possible:
+            if (~(size + 2 > block_size ) & block_size < best_block_size){
+                let best_block = current_block;
+                let best_block_size = block_size;
+            }
+
+            // advance to next block
+            let current_block = ram[current_block];
+        }
+
+        if(~(best_block_size = size)){ // block needs to be split into 2 smaller ones
+            let ram[best_block + 1] = size;     // shrink this block to requisite size
+            // create new block
+            let ram[best_block + 2 + size] = ram[best_block]; // new block's pointer
+            let ram[best_block + 3 + size] = best_block_size - size - 2; // new block's length
+
+            let ram[best_block] = best_block + 2 + size; // get best block to point into this new block
+        }
+
+        // unlink best block from freeList
+        if(freeList = best_block){              // special case where first block is the best block
+            let freeList = ram[best_block];
+        }
+        else{
+            let current_block = freeList;
+            while(~(ram[current_block] = best_block)){  // jump forwards until we get to the block pointing to the best block
+                let current_block = ram[current_block];
+            }
+            let ram[current_block] = ram[best_block];
+        }
+
+        return best_block + 2;
+
+    }
+
+    /** De-allocates the given object (cast as an array) by making
+     *  it available for future allocations. */
+    function void deAlloc(Array o) {
+        let ram[o - 2] = freeList;  // link recycled block into free blocks
+        let freeList = o - 2;       // link freeList into recycled block
+        return;
+    }
+}

@@ -1,0 +1,117 @@
+class Board{
+
+    field int b_width, b_height;
+    field Array board; // array of arrays
+
+    constructor Board new(int width, int height){
+        var int row;
+        let b_width = width;
+        let b_height = height;
+
+        // initialise board
+        let board = Array.new(b_height);
+        let row = 0;
+        while(row < b_height){
+            let board[row] = Array.new(b_width);
+            let row = row + 1;
+        }
+
+        return this;
+    }
+
+    // set address[i][j] to val
+    method void set(int i, int j, int val){
+        var Array a;
+
+        let a = board[j];
+        let a[i] = val;
+
+        return;
+    }
+
+    // get address[i][j], returning true if outside board
+    method int get(int i, int j){
+        var Array a;
+
+        if(i < 0 | ~(i < b_width) | ~(j < b_height)){
+            return true;
+        }
+        if(j < 0){
+            return 0;
+        }
+        else{
+            let a = board[j];
+            return a[i];
+        }
+
+    }
+
+    // draw all contents to screen
+    method void draw(){
+        var int row, column, pattern;
+
+        let row = 0;
+        while(row < b_height){
+            let column = 0;
+            while(column < b_width){
+                let pattern = get(column, row);
+                if(pattern = 0){
+                    do Drawer.erase(column, row);
+                }
+                else{
+                    do Drawer.draw(column, row, pattern);
+                }
+                let column = column + 1;
+            }
+            let row = row + 1;
+        }
+        return;
+    }
+
+    // remove rows, returning number
+    method int update_rows(){
+        var int row, delete_row, column, cleared_rows;
+        var Array a;
+        var bool full;
+
+        let cleared_rows = 0;
+        let row = 0;
+        while(row < b_height){
+            let a = board[row];
+
+            let column = 0;
+            let full = true;
+            while(column < b_width){
+                if(a[column] = 0){ // hole found, not a row to clear, so break#
+                    let full = false;
+                    let column = b_width;
+                }
+                let column = column + 1;
+            }
+
+            if(full){ // row needs clearing
+                let cleared_rows = cleared_rows + 1;
+
+                // clear a
+                let column = 0;
+                while(column < b_width){
+                    let a[column] = 0;
+                    let column = column + 1;
+                }
+
+                let delete_row = row;
+                // move rows down
+                while(delete_row > 0){
+                    let board[delete_row] = board[delete_row - 1];
+                    let delete_row = delete_row - 1;
+                }
+                // recycle now empty A back to top
+                let board[0] = a;
+            }
+
+            let row = row + 1;
+        }
+
+        return cleared_rows;
+    }
+}

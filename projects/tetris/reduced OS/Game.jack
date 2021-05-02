@@ -1,0 +1,283 @@
+class Game{
+
+    static int b_width, b_height;
+    field int score;
+    field Board board;
+    field Array active_blocks;
+    field int active_x;
+    field int active_y;
+
+    field int current_piece;
+    field int loop_counter;
+    field int randint;
+
+
+    constructor Game new(){
+
+        let b_width = 10;
+        let b_height = 20;
+
+        // initialise pieces array; each piece has 8 indecies
+
+        let board = Board.new(b_width, b_height);
+        let active_blocks = Array.new(8); // [x1, y1, x2, y2...]
+        let score = 0;
+        let randint = 0;
+
+        return this;
+    }
+
+    method void run(){
+        var bool running;
+        var int key;
+
+        do get_new_blocks();
+
+        let loop_counter = 0;
+        let running = true;
+        while(running){
+            // timing
+            let loop_counter = Math.max(0, loop_counter + 1);
+
+            // keyboard inputs
+            if(loop_counter & 4095 = 0){
+                let key = Keyboard.keyPressed();
+                if(key){
+                    let randint = randint + 1;
+                }
+
+                do hide_blocks();
+                if(key = 130){
+                    do move_blocks(-1, 0);
+                }
+                if(key = 132){
+                    do move_blocks(1, 0);
+                }
+                if(key = 133){
+                    do drop_blocks();
+                }
+                if(key = 131){
+                    do rotate_blocks();
+                }
+                do show_blocks();
+            }
+
+            // game updates
+            if(loop_counter & 16383 = 0){
+                let running = ~drop_blocks();
+            }
+
+        }
+        return;
+    }
+
+    // gets a new shape after placing
+    method void get_new_blocks(){
+
+        let active_x = b_width / 2 - 1;
+        let active_y = 0;
+
+        let current_piece = Math.abs(randint) / 4682 + 1; // pseudo random number
+        let randint = (randint * 13821) + 1;
+
+        // 0: O
+        if(current_piece = 1){
+            let active_blocks[0] = 0;
+            let active_blocks[1] = 0;
+            let active_blocks[2] = 1;
+            let active_blocks[3] = 0;
+            let active_blocks[4] = 0;
+            let active_blocks[5] = 1;
+            let active_blocks[6] = 1;
+            let active_blocks[7] = 1;
+        }
+        // 1: T
+        if(current_piece = 2){
+            let active_blocks[0] = 0;
+            let active_blocks[1] = 0;
+            let active_blocks[2] = -1;
+            let active_blocks[3] = 0;
+            let active_blocks[4] = 1;
+            let active_blocks[5] = 0;
+            let active_blocks[6] = 0;
+            let active_blocks[7] = 1;
+        }
+        // 2: L
+        if(current_piece = 3){
+            let active_blocks[0] = 0;
+            let active_blocks[1] = 0;
+            let active_blocks[2] = 0;
+            let active_blocks[3] = -1;
+            let active_blocks[4] = 0;
+            let active_blocks[5] = 1;
+            let active_blocks[6] = 1;
+            let active_blocks[7] = 1;
+        }
+        // 3: J
+        if(current_piece = 4){
+            let active_blocks[0] = 0;
+            let active_blocks[1] = 0;
+            let active_blocks[2] = 0;
+            let active_blocks[3] = -1;
+            let active_blocks[4] = 0;
+            let active_blocks[5] = 1;
+            let active_blocks[6] = -1;
+            let active_blocks[7] = 1;
+        }
+        // 4: S
+        if(current_piece = 5){
+            let active_blocks[0] = 0;
+            let active_blocks[1] = 0;
+            let active_blocks[2] = -1;
+            let active_blocks[3] = 0;
+            let active_blocks[4] = 0;
+            let active_blocks[5] = -1;
+            let active_blocks[6] = 1;
+            let active_blocks[7] = -1;
+        }
+        // 5: Z
+        if(current_piece = 6){
+            let active_blocks[0] = 0;
+            let active_blocks[1] = 0;
+            let active_blocks[2] = -1;
+            let active_blocks[3] = -1;
+            let active_blocks[4] = 0;
+            let active_blocks[5] = -1;
+            let active_blocks[6] = 1;
+            let active_blocks[7] = 0;
+        }
+        // 6: |
+        if(current_piece = 7){
+            let active_blocks[0] = 0;
+            let active_blocks[1] = 0;
+            let active_blocks[2] = -1;
+            let active_blocks[3] = 0;
+            let active_blocks[4] = 1;
+            let active_blocks[5] = 0;
+            let active_blocks[6] = 2;
+            let active_blocks[7] = 0;
+        }
+        do show_blocks();
+
+        return;
+    }
+
+    // try to displace blocks by dx dy, returing if successful
+    method bool move_blocks(int dx, int dy){
+        var int index;
+        var bool clear;
+
+        let clear = true;
+        let index = 0;
+        while(index < 8){
+            if(board.get(active_blocks[index] + active_x + dx, active_blocks[index+1] + active_y + dy)){
+                let clear = false;
+            }
+            let index = index + 2;
+        }
+        if(clear){
+            let active_x = active_x + dx;
+            let active_y = active_y + dy;
+        }
+
+        return clear;
+    }
+
+    // tries to rotate blocks, returning if successful
+    method bool rotate_blocks(){
+        var int index;
+        var bool clear;
+        var int a;
+
+        if(current_piece = 1){ // squares don't need to be rotated
+            return true;
+        }
+        else{
+            // try rotating
+            let clear = true;
+            let index = 0;
+            while(index < 8){
+                let a = active_blocks[index + 1];
+                let active_blocks[index + 1] = active_blocks[index];
+                let active_blocks[index] = -a;
+                if(current_piece = 7){ // | has a translation to make it rotate properly
+                    let active_blocks[index] = active_blocks[index] + 1;
+                }
+
+                let clear = clear & ~board.get(active_blocks[index] + active_x, active_blocks[index + 1] + active_y);
+
+                let index = index + 2;
+            }
+            // if we can't rotate, revert
+            if(~clear){
+                let index = 0;
+                while(index < 8){
+                    if(current_piece = 7){ // | has a translation to make it rotate properly
+                        let active_blocks[index] = active_blocks[index] - 1;
+                    }
+                    let a = active_blocks[index + 1];
+                    let active_blocks[index + 1] = -active_blocks[index];
+                    let active_blocks[index] = a;
+
+                    let index = index + 2;
+                }
+            }
+            return clear;
+        }
+    }
+
+    // lowers blocks by one
+    method bool drop_blocks(){
+        var bool index, game_over;
+
+        // if we can't move the blocks down by one, place them
+        do hide_blocks();
+        if(~move_blocks(0, 1)){
+            do show_blocks();
+            let index = 0;
+            while(index < 8){
+                do board.set(active_blocks[index] + active_x, active_blocks[index + 1] + active_y, current_piece);
+                let index = index + 2;
+            }
+            let score = score + board.update_rows(); // clear any rows, adding score
+            do Output.moveCursor(1, 32);
+            do Output.printInt(score);
+            if(score){
+                do board.draw();
+            }
+            do get_new_blocks();
+            do hide_blocks();
+            let game_over = ~move_blocks(0, 1);
+            do show_blocks();
+        }
+        do show_blocks();
+
+        return game_over;
+    }
+
+    // clear blocks from screen
+    method void hide_blocks(){
+        var int index;
+
+        let index = 0;
+        while(index < 8){
+            do Drawer.erase(active_blocks[index] + active_x, active_blocks[index + 1] + active_y);
+            let index = index + 2;
+        }
+        return;
+    }
+
+    // draws blocks to screen
+    method void show_blocks(){
+        var int index;
+
+        let index = 0;
+        while(index < 8){
+            do Drawer.draw(active_blocks[index] + active_x, active_blocks[index + 1] + active_y, current_piece);
+            let index = index + 2;
+        }
+        return;
+    }
+
+
+}

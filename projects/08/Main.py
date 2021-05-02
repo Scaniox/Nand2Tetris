@@ -13,7 +13,7 @@ command_writing_table = {   "C_ARITHMETIC"  :   "CodeWriter.writeArithmetic(Pars
                             "C_RETURN"      :   "CodeWriter.writeReturn()"}
 
 # input file/ files
-input_directory = Path(sys.argv[1])#input("input virtual machine program: "))
+input_directory = Path(input("input virtual machine program: "))#
 if input_directory.is_dir():
     files_to_process = input_directory.iterdir()
     output_file = open(input_directory / f"{input_directory.stem}.asm", "w")

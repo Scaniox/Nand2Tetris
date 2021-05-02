@@ -1,0 +1,49 @@
+class Main{
+
+    static Game game;
+
+    function void main(){
+
+        do Drawer.new(200, 25);
+        do Drawer.clear_board();
+        do Output.moveCursor(0, 26);
+        do Output.printString("Tetris");
+        do Output.moveCursor(1, 25);
+        do Output.printString("Score: 0");
+
+        do Screen.setColor(true);
+        do Screen.drawRectangle(2,2,10,10);
+        do Screen.drawPixel(0,0);
+        do Screen.drawPixel(0,2);
+        do Screen.drawPixel(0,4);
+        do Screen.drawPixel(0,6);
+        do Screen.drawPixel(0,8);
+        do Screen.drawPixel(0,10);
+        do Screen.drawPixel(2,0);
+        do Screen.drawPixel(4,0);
+        do Screen.drawPixel(6,0);
+        do Screen.drawPixel(8,0);
+        do Screen.drawPixel(10,0);
+
+        do Screen.drawPixel(22,0);
+        do Screen.drawPixel(22,2);
+        do Screen.drawPixel(22,4);
+        do Screen.drawPixel(22,6);
+        do Screen.drawPixel(22,8);
+
+        do Screen.drawPixel(2,22);
+        do Screen.drawPixel(4,22);
+        do Screen.drawPixel(6,22);
+        do Screen.drawPixel(8,22);
+        do Screen.drawPixel(10,22);
+
+
+        let game = Game.new();
+        do game.run();
+
+        do Output.moveCursor(8, 25);
+        do Output.printString("GAME OVER!");
+
+        return;
+    }
+}

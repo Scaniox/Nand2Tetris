@@ -23,18 +23,6 @@ class Screen {
         return;
     }
 
-    /** Erases the entire screen. */
-    function void clearScreen() {
-        var int address;
-
-        let address = 16384;
-        while(address < 24576){
-            do Memory.poke(address, 0);
-            let address = address + 1;
-        }
-        return;
-    }
-
     /** Sets the current color, to be used for all subsequent drawXXX commands.
      *  Black is represented by true, white by false. */
     function void setColor(boolean b) {
@@ -155,16 +143,25 @@ class Screen {
     function void draw_h_line(int x1, int y, int x2){
         var int address, end_address, mask, bit_index ;
 
-        //let x1 = x1 - 1;
 
         let address = 16384 + (x1 / 16) + (y * 32) + 1;
         let end_address = 16384 + (x2 / 16) + (y * 32) + 1;
 
         if(address = end_address){
-            while(x1 < x2){
-                do Screen.drawPixel(x1, y);
+            let mask = 0;
+            let bit_index = x1 - ((x1 / 16) * 16);
+            while(~(x1 > x2)){
+                let mask = mask | Math.poweroftwo(bit_index);
                 let x1 = x1 + 1;
+                let bit_index = bit_index + 1;
             }
+            if(color){
+                do Memory.poke(address - 1, Memory.peek(address - 1) | mask);
+            }
+            else{
+                do Memory.poke(address - 1, Memory.peek(address - 1) & ~mask);
+            }
+            return;
         }
         else{
             // first partial word
@@ -213,21 +210,6 @@ class Screen {
             do Screen.draw_h_line(x1, y1, x2);
             let y1 = y1 + 1;
         }
-        return;
-    }
-
-    /** Draws a filled circle of radius r<=181 around (x,y), using the current color. */
-    function void drawCircle(int x, int y, int r) {
-        var int dx, row, rsqr;
-
-        let rsqr = r * r;
-        let row = -r;
-        while(row < r){
-            let dx = Math.sqrt(rsqr - (row * row));
-            do Screen.draw_h_line(x - dx, y + row, x + dx);
-            let row = row + 1;
-        }
-
         return;
     }
 }

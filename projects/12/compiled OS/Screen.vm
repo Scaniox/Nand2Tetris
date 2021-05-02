@@ -384,24 +384,6 @@ eq
 if-goto IF_TRUE0
 goto IF_FALSE0
 label IF_TRUE0
-label WHILE_EXP0
-push argument 0
-push argument 2
-lt
-not
-if-goto WHILE_END0
-push argument 0
-push argument 1
-call Screen.drawPixel 2
-pop temp 0
-push argument 0
-push constant 1
-add
-pop argument 0
-goto WHILE_EXP0
-label WHILE_END0
-goto IF_END0
-label IF_FALSE0
 push constant 0
 pop local 2
 push argument 0
@@ -412,23 +394,28 @@ push constant 16
 call Math.multiply 2
 sub
 pop local 3
-label WHILE_EXP1
-push local 3
-push constant 16
-lt
+label WHILE_EXP0
+push argument 0
+push argument 2
+gt
 not
-if-goto WHILE_END1
+not
+if-goto WHILE_END0
 push local 2
 push local 3
 call Math.poweroftwo 1
 or
 pop local 2
+push argument 0
+push constant 1
+add
+pop argument 0
 push local 3
 push constant 1
 add
 pop local 3
-goto WHILE_EXP1
-label WHILE_END1
+goto WHILE_EXP0
+label WHILE_END0
 push static 0
 if-goto IF_TRUE1
 goto IF_FALSE1
@@ -459,6 +446,67 @@ and
 call Memory.poke 2
 pop temp 0
 label IF_END1
+push constant 0
+return
+goto IF_END0
+label IF_FALSE0
+push constant 0
+pop local 2
+push argument 0
+push argument 0
+push constant 16
+call Math.divide 2
+push constant 16
+call Math.multiply 2
+sub
+pop local 3
+label WHILE_EXP1
+push local 3
+push constant 16
+lt
+not
+if-goto WHILE_END1
+push local 2
+push local 3
+call Math.poweroftwo 1
+or
+pop local 2
+push local 3
+push constant 1
+add
+pop local 3
+goto WHILE_EXP1
+label WHILE_END1
+push static 0
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push local 0
+push constant 1
+sub
+push local 0
+push constant 1
+sub
+call Memory.peek 1
+push local 2
+or
+call Memory.poke 2
+pop temp 0
+goto IF_END2
+label IF_FALSE2
+push local 0
+push constant 1
+sub
+push local 0
+push constant 1
+sub
+call Memory.peek 1
+push local 2
+not
+and
+call Memory.poke 2
+pop temp 0
+label IF_END2
 push local 1
 push constant 1
 sub
@@ -508,9 +556,9 @@ pop local 3
 goto WHILE_EXP3
 label WHILE_END3
 push static 0
-if-goto IF_TRUE2
-goto IF_FALSE2
-label IF_TRUE2
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
 push local 1
 push local 1
 call Memory.peek 1
@@ -518,8 +566,8 @@ push local 2
 or
 call Memory.poke 2
 pop temp 0
-goto IF_END2
-label IF_FALSE2
+goto IF_END3
+label IF_FALSE3
 push local 1
 push local 1
 call Memory.peek 1
@@ -528,7 +576,7 @@ not
 and
 call Memory.poke 2
 pop temp 0
-label IF_END2
+label IF_END3
 label IF_END0
 push constant 0
 return

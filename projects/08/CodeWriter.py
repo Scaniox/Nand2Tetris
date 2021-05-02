@@ -192,13 +192,13 @@ def close(): # closes output_file
 def setFileName(fileName):
     global file_name
     file_name = fileName
-    print(f"New file name: {file_name}")
+    #print(f"New file name: {file_name}")
 
 
 def writeInit(call_sys):
     output_file.write("@256 //boostrap code\nD=A\n@SP\nM=D\n")
     if call_sys:
-        print("calling Sys.init 0")
+        #print("calling Sys.init 0")
         writeCall("Sys.init", 0)
         output_file.write("@None&ret.0\n0;JMP\n")
 
@@ -221,7 +221,7 @@ def writeFunction(functionName, numArgs):
     global current_function
     current_function = functionName
 
-    print(f"writefunction: {functionName}")
+    #print(f"writefunction: {functionName}")
 
     output_file.write(f"({functionName}) // function\n")
     for i in range(int(numArgs)):

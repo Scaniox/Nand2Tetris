@@ -42,7 +42,7 @@ def advance(): # move on to next command
 
     if words[0] in command_types : # other commands
         command_type = command_types[words[0]]
-        print(command_type)
+        #print(command_type)
 
         if command_type != "C_RETURN": # only put an arg 1 if it is not a return
             arg_1 = words[1]
